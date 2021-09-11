@@ -2,6 +2,7 @@
 
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
+from Detection import detect
 # ... other import statements ...
 
 # creating the Flask application
@@ -10,9 +11,10 @@ CORS(app)
 
 
 
-@app.route('/predicitons')
-def get_exams():
-    response = make_response("Here you are: predicitons", 200)
+@app.route('/predictions')
+def get_predictions():
+    predictions = detect()
+    response = make_response(str(predictions), 200)
     response.mimetype = "text/plain"
     print(response)
     return response
