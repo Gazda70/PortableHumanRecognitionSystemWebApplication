@@ -20,11 +20,11 @@ class DetectionManager:
         self.obj_threshold = obj_threshold
         self.iou_threshold = iou_threshold
         now = datetime.now().second
-        print("Now: " + now)
-        detection_time = datetime.datetime.strptime(detectionTimeString, '%I:%M')
+        print("Now: " + str(now))
+        detection_time = datetime.strptime(detectionTimeString, '%I:%M')
         print("Detection time: " + str(detection_time))
         detection_end =  now + detection_time.second
-        print("Detection end: " + detection_end)
+        print("Detection end: " + str(detection_end))
         today = datetime.datetime
         #detections = self.detect(self, detection_time.second, today)
 

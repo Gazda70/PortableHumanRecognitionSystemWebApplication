@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from detection_manager import DetectionManager
 import json
+import time
 #from Detection import detect
 # ... other import statements ...
 
@@ -11,7 +12,27 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-detection_manager = DetectionManager()
+def get_detector_occupancy(filename="/home/pi/Desktop/Backend/PortableHumanRecognitionSystemWebApplication/backend/DetectionState/IfDetectorOccupied.txt"):
+    with open(filename, "a+") as f:
+        f.seek(0)
+        val = int(f.read() or 0)
+        return val
+
+def set_detector_occupancy(detector_occupancy=0, filename="/home/pi/Desktop/Backend/PortableHumanRecognitionSystemWebApplication/backend/DetectionState/IfDetectorOccupied.txt"):
+    with open(filename, "a+") as f:
+        f.seek(0)
+        f.truncate()
+        f.write(str(detector_occupancy))
+    
+
+@app.route('/check_detection_state')
+def check_if_ongoing_detection():
+    is_ongoing = "true"
+    detector_occupancy = get_detector_occupancy()
+    print("det state: " + str(detector_occupancy))
+    if detector_occupancy == 0:
+        is_ongoing = "false"
+    return is_ongoing
 
 @app.route('/predictions')
 def get_predictions():
@@ -35,8 +56,15 @@ def setup_detection():
 
     elif request.method == 'GET':
     '''
-    detection_manager.startDetection(req["networkType"], req["endTime"],
-                                     float(req["objThreshold"]), float(req["iouThreshold"]))
+    set_detector_occupancy(1)
+    time.sleep(10)
+    detection_manager = DetectionManager()
+    
+    #detection_manager.startDetection(req["networkType"], req["endTime"],
+     #                                float(req["objThreshold"]), float(req["iouThreshold"]))
+                                     
+    set_detector_occupancy(0)
+
     print(req)
     print("Request part: ")
     print(req['endDay'])
