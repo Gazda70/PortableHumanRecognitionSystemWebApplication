@@ -17,6 +17,8 @@ from threading import Thread
 
 import time
 
+PATH_TO_DETECTION_FILES = ""
+
 class VideoStream:
     """Camera object that controls video streaming from the Picamera"""
     def __init__(self,resolution=(640,480),framerate=30):
@@ -57,75 +59,74 @@ class VideoStream:
 	# Indicate that the camera and thread should be stopped
         self.stopped = True
 
-model = cv2.dnn.readNetFromTensorflow(
-    '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb',
-    '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29.pbtxt')
+def detectSSD(numberOfSeconds, timestamp):
+    model = cv2.dnn.readNetFromTensorflow(
+        '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb',
+        '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29.pbtxt')
 
-# Initialize frame rate calculation
-frame_rate_calc = 1
-freq = cv2.getTickFrequency()
+    # Initialize frame rate calculation
+    frame_rate_calc = 1
+    freq = cv2.getTickFrequency()
 
-# Initialize video stream
-videostream = VideoStream(resolution=(300, 300),framerate=30).start()
-#time.sleep(1)
+    # Initialize video stream
+    videostream = VideoStream(resolution=(300, 300),framerate=30).start()
+    #time.sleep(1)
 
-########### MEASUREMENT CODE #################
-NUMBER_OF_DETECTIONS = 0
-RESULT_FILE_PATH="/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/results_ssd_2.txt"
-frame_rate_table = []
-start = time.time()
-
-########### MEASUREMENT CODE #################
-
-# Create window
-#cv2.namedWindow('Object detector', cv2.WINDOW_NORMAL)
-#print("Reached here")
-#for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
-while True:
-#for i in range(0, 10):
-    # Start timer (for calculating frame rate)
-    t1 = cv2.getTickCount()
-
-    # Grab frame from video stream
-    frame1 = videostream.read()
-    cv2.imshow('Object detector', frame1)
-    # Acquire frame and resize to expected shape [1xHxWx3]
-    frame = frame1.copy()
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame_resized = cv2.resize(frame_rgb, (300, 300))
-
-    model.setInput(cv2.dnn.blobFromImage(frame_resized, size=(300, 300), swapRB=True))
-    output = model.forward()
-    # Loop over all detections and draw detection box if confidence is above minimum threshold
-
-    
     ########### MEASUREMENT CODE #################
-    
-    # Calculate framerate
-    t2 = cv2.getTickCount()
-    time1 = (t2-t1)/freq
-    frame_rate_calc= 1/time1
-    frame_rate_table.append(frame_rate_calc)
-    
-    #Calculate total time
-    NUMBER_OF_DETECTIONS += 1
-    end = time.time()
-    elapsed_time = end-start
-    if elapsed_time >= 60:
-        f = open(RESULT_FILE_PATH, "a")
-        f.write("Framerates:\n")
-        for i in frame_rate_table:
-            f.write(str(i) + "\n")
-        f.write("NUMBER_OF_DETECTIONS: " + str(NUMBER_OF_DETECTIONS))
-        f.close()
-        break;
+    NUMBER_OF_DETECTIONS = 0
+    RESULT_FILE_PATH="/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/results_ssd_2.txt"
+    frame_rate_table = []
+    start = time.time()
 
     ########### MEASUREMENT CODE #################
 
-    # Press 'q' to quit
-    if cv2.waitKey(1) == ord('q'):
-        break
+    # Create window
+    #cv2.namedWindow('Object detector', cv2.WINDOW_NORMAL)
+    #print("Reached here")
+    #for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
+    while True:
+    #for i in range(0, 10):
+        # Start timer (for calculating frame rate)
+        t1 = cv2.getTickCount()
 
-# Clean up
-cv2.destroyAllWindows()
-videostream.stop()
+        # Grab frame from video stream
+        frame1 = videostream.read()
+        cv2.imshow('Object detector', frame1)
+        # Acquire frame and resize to expected shape [1xHxWx3]
+        frame = frame1.copy()
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_resized = cv2.resize(frame_rgb, (300, 300))
+
+        model.setInput(cv2.dnn.blobFromImage(frame_resized, size=(300, 300), swapRB=True))
+        output = model.forward()
+        # Loop over all detections and draw detection box if confidence is above minimum threshold
+
+
+        ########### MEASUREMENT CODE #################
+
+        # Calculate framerate
+        t2 = cv2.getTickCount()
+        time1 = (t2-t1)/freq
+        frame_rate_calc= 1/time1
+        frame_rate_table.append(frame_rate_calc)
+
+        #Calculate total time
+        NUMBER_OF_DETECTIONS += 1
+        end = time.time()
+        elapsed_time = end-start
+        if elapsed_time >= numberOfSeconds:
+            writeDetectionPeriodSummary(timestamp)
+            break
+
+    # Clean up
+    cv2.destroyAllWindows()
+    videostream.stop()
+
+
+def writeDetectionPeriodSummary(timestamp):
+    f = open(PATH_TO_DETECTION_FILES + timestamp, "a")
+    f.write("Framerates:\n")
+    for i in frame_rate_table:
+        f.write(str(i) + "\n")
+    f.write("NUMBER_OF_DETECTIONS: " + str(NUMBER_OF_DETECTIONS))
+    f.close()

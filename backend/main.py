@@ -2,6 +2,7 @@
 
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
+from detection_manager import DetectionManager
 import json
 #from Detection import detect
 # ... other import statements ...
@@ -10,7 +11,7 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-
+detection_manager = DetectionManager()
 
 @app.route('/predictions')
 def get_predictions():
@@ -24,11 +25,18 @@ def get_predictions():
     print("I am GET")
     return "I am working"
 
-@app.route('/setup', methods=['POST'])
+@app.route('/setup', methods=['GET','POST'])
 def setup_detection():
     print("I am POST")
     print("Request body: ")
     req = request.get_json()
+    '''
+    if request.method == 'POST':
+
+    elif request.method == 'GET':
+    '''
+    detection_manager.startDetection(req["networkType"], req["endTime"],
+                                     float(req["objThreshold"]), float(req["iouThreshold"]))
     print(req)
     print("Request part: ")
     print(req['endDay'])
