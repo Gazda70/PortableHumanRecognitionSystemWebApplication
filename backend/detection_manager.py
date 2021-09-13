@@ -7,7 +7,7 @@ import time
 import tensorflow as tf
 import numpy as np
 import os
-from yolo_functions import OutputRescaler, ImageReader, find_high_class_probability_bbox, nonmax_suppression, ANCHORS, TRUE_BOX_BUFFER
+from yolo_functions import OutputRescaler, ImageReader, find_high_class_probability_bbox, nonmax_suppression, ANCHORS, TRUE_BOX_BUFFER, LABELS
 
 
 class DetectionManager:
@@ -66,6 +66,15 @@ class DetectionManager:
 
         return y_pred
 
+
+    def adjust_minmax(self, c, _max):
+        if c < 0:
+            c = 0
+        if c > _max:
+            c = _max
+        return c
+
+
     def detect(self):
         IMAGE_W = 416
         IMAGE_H = 416
@@ -101,9 +110,27 @@ class DetectionManager:
             iou_threshold = 0.1
             final_boxes = nonmax_suppression(boxes, iou_threshold=iou_threshold, obj_threshold=self.obj_threshold)
 
+            obj_baseline = 0.05
+
+            score_rescaled = np.array([box.get_score() for box in final_boxes])
+            score_rescaled /= obj_baseline
+
+            predicted_boxes = []
+
+            for sr, box in zip(score_rescaled, boxes):
+                print('PREDICTED LABEL: ' + LABELS[box.label])
+                xmin = self.adjust_minmax(int(box.xmin * IMAGE_W), IMAGE_W)
+                ymin = self.adjust_minmax(int(box.ymin * IMAGE_H), IMAGE_H)
+                xmax = self.adjust_minmax(int(box.xmax * IMAGE_W), IMAGE_W)
+                ymax = self.adjust_minmax(int(box.ymax * IMAGE_H), IMAGE_H)
+                if LABELS[box.label] == 'person':
+                    predicted_boxes.append(
+                        {'name': LABELS[box.label], 'score': box.get_score(),
+                                                        'xmin': xmin, 'ymin': ymin, 'xmax': xmax, 'ymax': ymax})
+
             current_time = time.time()
             elapsed_time = current_time - start_time
-            detection_objects.append({"frame_time":current_time, "detections":final_boxes})
+            detection_objects.append({"frame_time":current_time, "detections":predicted_boxes})
             if elapsed_time > self.detectionSeconds:
                 self.writeDetectionPeriodSummary(detection_objects, start_time, self.detectionSeconds)
                 '''
@@ -117,7 +144,6 @@ class DetectionManager:
         videostream.stop()
 
         return final_boxes
-
 
 
     def determineSecondsForDetection(self, detectionTimeString):
@@ -165,5 +191,5 @@ class DetectionManager:
                     "detections":mylist[1:]
                     }
                 myfile.close()
-            detection_objects.append(detection_object)
+                detection_objects.append(detection_object)
         return detection_objects
