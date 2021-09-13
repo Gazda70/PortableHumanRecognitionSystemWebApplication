@@ -1,8 +1,8 @@
 import cv2
 from threading import Thread
 from video_stream import VideoStream
-import datetime
 from datetime import datetime
+import datetime
 import time
 import tensorflow as tf
 import numpy as np
@@ -15,18 +15,13 @@ class DetectionManager:
         self.SSD_INFERENCE_GRAPH = '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb'
         self.SSD_PBTXT = '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29.pbtxt'
 
-    def startDetection(self, neuralNetworkType, detectionTimeString,  obj_threshold=0.3, iou_threshold = 0.1):
+    def startDetection(self, neuralNetworkType, detectionSeconds,  obj_threshold=0.3, iou_threshold = 0.1):
         self.neuralNetworkType = neuralNetworkType
         self.obj_threshold = obj_threshold
         self.iou_threshold = iou_threshold
-        now = datetime.now().second
-        print("Now: " + str(now))
-        detection_time = datetime.strptime(detectionTimeString, '%I:%M')
-        print("Detection time: " + str(detection_time))
-        detection_end =  now + detection_time.second
-        print("Detection end: " + str(detection_end))
-        today = datetime.datetime
-        #detections = self.detect(self, detection_time.second, today)
+        self.detectionSeconds = detectionSeconds
+
+        detections = self.detect()
 
     def load_model_SSD(self):
         self.model_SSD = cv2.dnn.readNetFromTensorflow(
@@ -63,10 +58,9 @@ class DetectionManager:
 
         return y_pred
 
-    def detect(self, numberOfSeconds, timestamp):
+    def detect(self):
         IMAGE_W = 416
         IMAGE_H = 416
-        TRUE_BOX_BUFFER = 50
 
         # Initialize video stream
         videostream = VideoStream(resolution=(IMAGE_W, IMAGE_H), framerate=30).start()
@@ -77,21 +71,29 @@ class DetectionManager:
 
         frame = videostream.read()
 
-        netout = []
-        if self.neuralNetworkType=="CUSTOM":
-            netout = self.detect_GazdaWitekLipka(frame, IMAGE_W, IMAGE_H)
-        elif self.neuralNetworkType == "SSD":
-            netout = self.detect_SSD(frame, 300, 300)
-        else:
-            pass
+        start_time = time.time()
+        while True:
+            netout = []
+            if self.neuralNetworkType == "CUSTOM":
+                netout = self.detect_GazdaWitekLipka(frame, IMAGE_W, IMAGE_H)
+            elif self.neuralNetworkType == "SSD":
+                netout = self.detect_SSD(frame, 300, 300)
+            else:
+                pass
 
-        outputRescaler = OutputRescaler(ANCHORS=ANCHORS)
-        netout_scale = outputRescaler.fit(netout)
+            outputRescaler = OutputRescaler(ANCHORS=ANCHORS)
+            netout_scale = outputRescaler.fit(netout)
 
-        boxes = find_high_class_probability_bbox(netout_scale, self.obj_threshold)
+            boxes = find_high_class_probability_bbox(netout_scale, self.obj_threshold)
 
-        iou_threshold = 0.1
-        final_boxes = nonmax_suppression(boxes, iou_threshold=iou_threshold, obj_threshold=self.obj_threshold)
+            iou_threshold = 0.1
+            final_boxes = nonmax_suppression(boxes, iou_threshold=iou_threshold, obj_threshold=self.obj_threshold)
+
+            current_time = time.time()
+            elapsed_time = current_time - start_time
+
+            if elapsed_time > self.detectionSeconds:
+                break
 
         cv2.destroyAllWindows()
         videostream.stop()
@@ -100,6 +102,23 @@ class DetectionManager:
 
 
 
+    def determineSecondsForDetection(self, detectionTimeString):
+        timeValues = []
+        timeValues = detectionTimeString.split(':')
+        for timeVal in timeValues:
+            print("Time value: " + timeVal)
+        timeNow = datetime.datetime.now().time()
+        hours = int(timeValues[0]) - timeNow.hour
+        minutes = int(timeValues[1]) - timeNow.minute
+        print("Hours: " + str(hours))
+        print("Minutes: " + str(minutes))
+        if minutes < 0:
+            minutes = 60 - minutes
+            hours -= 1
+
+        if hours < 0:
+            print("End time must be grater that start time !")
+        start_time = time.time()
 
 
     def writeDetectionPeriodSummary(self, timestamp):

@@ -60,8 +60,8 @@ def setup_detection():
     time.sleep(10)
     detection_manager = DetectionManager()
     
-    #detection_manager.startDetection(req["networkType"], req["endTime"],
-     #                                float(req["objThreshold"]), float(req["iouThreshold"]))
+    detection_manager.startDetection(req["networkType"], int(req["numberOfSecondsForDetection"]),
+                                     float(req["objThreshold"]), float(req["iouThreshold"]))
                                      
     set_detector_occupancy(0)
 
