@@ -67,7 +67,7 @@ def setup_detection():
 
     print(req)
     print("Request part: ")
-    print(req['endDay'])
+    #print(req['endDay'])
     response_body = {
       "startDay": "Wed",
       "endDay": "Thurs",

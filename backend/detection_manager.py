@@ -20,8 +20,15 @@ class DetectionManager:
         self.obj_threshold = obj_threshold
         self.iou_threshold = iou_threshold
         self.detectionSeconds = detectionSeconds
-
+        print("Starting detection: " + str(datetime.datetime.now()))
+        if self.neuralNetworkType == "CUSTOM":
+            netout = self.load_model_GazdaWitekLipka()
+        elif self.neuralNetworkType == "SSD":
+            netout = self.load_model_SSD()
+        else:
+            netout=None
         detections = self.detect()
+        print("Ending detection: " + str(datetime.datetime.now()))
 
     def load_model_SSD(self):
         self.model_SSD = cv2.dnn.readNetFromTensorflow(
@@ -62,6 +69,7 @@ class DetectionManager:
         IMAGE_W = 416
         IMAGE_H = 416
 
+        detection_objects = []
         # Initialize video stream
         videostream = VideoStream(resolution=(IMAGE_W, IMAGE_H), framerate=30).start()
         time.sleep(1)
@@ -73,13 +81,14 @@ class DetectionManager:
 
         start_time = time.time()
         while True:
-            netout = []
             if self.neuralNetworkType == "CUSTOM":
-                netout = self.detect_GazdaWitekLipka(frame, IMAGE_W, IMAGE_H)
+                y_pred = self.detect_GazdaWitekLipka(frame, IMAGE_W, IMAGE_H)
             elif self.neuralNetworkType == "SSD":
-                netout = self.detect_SSD(frame, 300, 300)
+                y_pred = self.detect_SSD(frame, 300, 300)
             else:
-                pass
+                y_pred=None
+                
+            netout = y_pred[0]
 
             outputRescaler = OutputRescaler(ANCHORS=ANCHORS)
             netout_scale = outputRescaler.fit(netout)
@@ -91,8 +100,11 @@ class DetectionManager:
 
             current_time = time.time()
             elapsed_time = current_time - start_time
-
+            detection_objects.append(final_boxes)
             if elapsed_time > self.detectionSeconds:
+                for det_obj in detection_objects:
+                    for fin_box in det_obj:
+                        print("detection_object: " + str(fin_box.classes[0]))
                 break
 
         cv2.destroyAllWindows()
