@@ -41,8 +41,8 @@ def get_predictions():
     response_body_json = json.dumps(response_body)
     response = make_response(response_body_json, 200)
     response.mimetype = "application/json"
-    print('Response: ')
-    print(response)
+    print('Response body: ')
+    print(response_body_json)
     return response
 
 @app.route('/setup', methods=['GET','POST'])

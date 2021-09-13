@@ -185,11 +185,17 @@ class DetectionManager:
                 myfile = open(f, "r")
                 mylist = myfile.readlines()
                 basic_info_array = mylist[0].split(':')
+                print("Timestamp: " + basic_info_array[1])
+                print("secondsOfDetection: " + basic_info_array[3])
                 detection_object = {
                     "timestamp":basic_info_array[1],
                     "secondsOfDetection":basic_info_array[3],
-                    "detections":mylist[1:]
+                    "detections":mylist[1:len(mylist)-1],
+                    "numberOfDetections":mylist[-1]
                     }
                 myfile.close()
+                return detection_object
+                '''
                 detection_objects.append(detection_object)
         return detection_objects
+'''
