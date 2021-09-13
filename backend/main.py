@@ -36,15 +36,14 @@ def check_if_ongoing_detection():
 
 @app.route('/predictions')
 def get_predictions():
-    '''
-    predictions = detect()
-    response = make_response(str(predictions), 200)
-    response.mimetype = "text/plain"
+    detection_manager = DetectionManager()
+    response_body = detection_manager.get_detection_data()
+    response_body_json = json.dumps(response_body)
+    response = make_response(response_body_json, 200)
+    response.mimetype = "application/json"
+    print('Response: ')
     print(response)
     return response
-    '''
-    print("I am GET")
-    return "I am working"
 
 @app.route('/setup', methods=['GET','POST'])
 def setup_detection():

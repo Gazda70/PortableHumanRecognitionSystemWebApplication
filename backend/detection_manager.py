@@ -6,12 +6,13 @@ import datetime
 import time
 import tensorflow as tf
 import numpy as np
+import os
 from yolo_functions import OutputRescaler, ImageReader, find_high_class_probability_bbox, nonmax_suppression, ANCHORS, TRUE_BOX_BUFFER
 
 
 class DetectionManager:
     def __init__(self):
-        self.PATH_TO_DETECTION_FILES = ""
+        self.PATH_TO_DETECTION_FILES = "/home/pi/Desktop/Backend/PortableHumanRecognitionSystemWebApplication/backend/DetectionData/"
         self.SSD_INFERENCE_GRAPH = '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb'
         self.SSD_PBTXT = '/home/pi/Desktop/PeopleCounting/RPIObjectDetection/Code/Detection/SSD/ssd_mobilenet_v2_coco_2018_03_29.pbtxt'
 
@@ -78,6 +79,8 @@ class DetectionManager:
         cv2.namedWindow('Object detector', cv2.WINDOW_NORMAL)
 
         frame = videostream.read()
+        
+        
 
         start_time = time.time()
         while True:
@@ -100,11 +103,14 @@ class DetectionManager:
 
             current_time = time.time()
             elapsed_time = current_time - start_time
-            detection_objects.append(final_boxes)
+            detection_objects.append({"frame_time":current_time, "detections":final_boxes})
             if elapsed_time > self.detectionSeconds:
+                self.writeDetectionPeriodSummary(detection_objects, start_time, self.detectionSeconds)
+                '''
                 for det_obj in detection_objects:
                     for fin_box in det_obj:
                         print("detection_object: " + str(fin_box.classes[0]))
+                '''
                 break
 
         cv2.destroyAllWindows()
@@ -133,10 +139,31 @@ class DetectionManager:
         start_time = time.time()
 
 
-    def writeDetectionPeriodSummary(self, timestamp):
-        f = open(self.PATH_TO_DETECTION_FILES + timestamp, "a")
-        f.write("Framerates:\n")
-        for i in frame_rate_table:
-            f.write(str(i) + "\n")
-        f.write("NUMBER_OF_DETECTIONS: " + str(NUMBER_OF_DETECTIONS))
+    def writeDetectionPeriodSummary(self, detections, timestamp, seconds_of_detection):
+        f = open(self.PATH_TO_DETECTION_FILES + str(timestamp), "a")
+        f.write("START:" + str(timestamp) + ":DURATION:" + str(seconds_of_detection) + "\n")
+        for detection in detections:
+            f.write("frame_time:" + str(detection["frame_time"]) + ":detections:" + str(detection["detections"]) + "\n")
+        f.write("NUMBER_OF_DETECTIONS:" + str(len(detections)))
         f.close()
+        
+        
+    def get_detection_data(self):
+        detection_objects = []
+        # iterate over files in
+        # that directory
+        for filename in os.listdir(self.PATH_TO_DETECTION_FILES):
+            f = os.path.join(self.PATH_TO_DETECTION_FILES, filename)
+            # checking if it is a file
+            if os.path.isfile(f):
+                myfile = open(f, "r")
+                mylist = myfile.readlines()
+                basic_info_array = mylist[0].split(':')
+                detection_object = {
+                    "timestamp":basic_info_array[1],
+                    "secondsOfDetection":basic_info_array[3],
+                    "detections":mylist[1:]
+                    }
+                myfile.close()
+            detection_objects.append(detection_object)
+        return detection_objects
