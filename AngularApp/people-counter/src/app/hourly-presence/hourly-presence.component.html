@@ -1,0 +1,73 @@
+
+<!--The content below is only a placeholder and can be replaced.-->
+  <h1 class="card-header bg-info">
+    Welcome to People Counter statistics!
+  </h1>
+  <h3 class="text-secondary">
+    Detection summary
+  </h3>
+  <div class="row ml-5">
+  <div class="col">
+    <div class="row">
+      <h4>
+        Duration of detection sessions 
+      </h4>
+    </div>
+    <div class="row">
+      <ngx-charts-bar-vertical
+        [view]="view"
+        [results]="detectionsDurationChartData"
+        [gradient]="gradient"
+        [xAxis]="showXAxis"
+        [yAxis]="showYAxis"
+        [legend]="showLegend"
+        [showXAxisLabel]="showXAxisLabel"
+        [showYAxisLabel]="showYAxisLabel"
+        [xAxisLabel]="xAxisLabelDuration"
+        [yAxisLabel]="yAxisLabelDuration"
+        (select)="onSelect($event)">
+      </ngx-charts-bar-vertical>
+    </div>
+  </div>
+  <!--<div class="col">
+    <div class="row">
+      <h4>
+        Vertical Bar Chart Normalized
+      </h4>
+    </div>
+    <div class="row">
+      <ngx-charts-bar-vertical-normalized
+        [view]="view"
+        [results]="multi"
+        [gradient]="gradient"
+        [xAxis]="showXAxis"
+        [yAxis]="showYAxis"
+        [legend]="showLegend"
+        [showXAxisLabel]="showXAxisLabel"
+        [showYAxisLabel]="showYAxisLabel"
+        [xAxisLabel]="xAxisLabel"
+        [yAxisLabel]="yAxisLabel"
+        (select)="onSelect($event)">
+      </ngx-charts-bar-vertical-normalized>
+    </div>
+  </div>-->
+  <br><br><br>
+<div class="row ml-5">
+  <h4>
+    Number of persons per frame in the last detection event
+  </h4>
+<!--<div class="form-group row ml-5">-->
+  <ngx-charts-bar-vertical
+    [view]="view"
+    [results]="detectionPersonPerFramerChartData"
+    [gradient]="gradient"
+    [xAxis]="showXAxis"
+    [yAxis]="showYAxis"
+    [legend]="showLegend"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxisLabel]="xAxisLabelPerson"
+    [yAxisLabel]="yAxisLabelPerson"
+    (select)="onSelect($event)">
+  </ngx-charts-bar-vertical>
+</div>

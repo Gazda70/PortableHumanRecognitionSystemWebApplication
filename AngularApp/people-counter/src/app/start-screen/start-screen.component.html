@@ -1,0 +1,12 @@
+
+<div>
+  <form name="timeForm">
+    <mat-form-field appearance="fill" #end>
+      <mat-label>Detection time</mat-label>
+      <input matInput name="endTime" [disabled]="this.isDetecting" [(ngModel)] = "endTime">
+    </mat-form-field>
+  </form>
+  <button mat-raised-button [disabled]="this.isDetecting" (click)="this.detect()">Start detection</button>
+</div>
+  <!--<mat-progress-spinner *ngIf="this.isDetecting" mode="indeterminate">-->
+
