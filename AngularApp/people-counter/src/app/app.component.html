@@ -1,10 +1,14 @@
 <!-- This nav gives you links to click, which tells the router which route to use (defined in the routes constant in  AppRoutingModule) -->
-<div >
+<div class="center">
 <h1>Welcome to People Counter</h1>
+</div>
+<div class="center">
 <nav>
   <button mat-button routerLink="/start-screen-component" routerLinkActive="active">Manage detection</button>
   <button mat-button routerLink="/hourly-presence-component" routerLinkActive="active">View statistics</button>
 </nav>
+</div>
+<div class="center">
 <!-- The routed views render in the <router-outlet>-->
 <router-outlet></router-outlet>
 </div>

@@ -13,9 +13,19 @@ export class StartScreenComponent implements OnInit, OnChanges {
   neuralNetworksAvailable:string[] = []
   neuralNetworkChosen = '';
   isDetecting:boolean = false;
+  startTime:string = '';
+  startTimeError = {
+    flag:false,
+    code:''
+  }
   endTime:string = '';
+  endTimeError = {
+    flag:false,
+    code:''
+  }
   numberOfSecondsForDetection:number = 0;
 
+  model: any;
  /* time: number = 0;
   display: any;
   interval: any;
@@ -56,6 +66,9 @@ export class StartScreenComponent implements OnInit, OnChanges {
         })
       }
     )*/
+    if(this.validateDetectionTime()){
+
+    }
   }
 
   ngOnInit(): void {
@@ -94,29 +107,54 @@ export class StartScreenComponent implements OnInit, OnChanges {
 
   validateDetectionTime():boolean{
     var re = /^(?:([01]?\d|2[0-3]):([0-5]?\d))?$/;
+    if(re.test(this.startTime)){
+      const hhMM = this.startTime.split(':');
+      var currentdate = new Date();
+      var resultHours = parseInt(hhMM[0], 10) - currentdate.getHours();
+      var resultMinutes = parseInt(hhMM[1], 10) - currentdate.getMinutes();
+      if (resultHours < 0){
+          this.startTimeError.flag = true;
+          this.startTimeError.code = "You can't setup detection for time in past. Increase hour !";
+          return false;
+      }
+      if(resultMinutes < 0) {
+        if(resultHours == 0){
+          this.startTimeError.flag = true;
+          this.startTimeError.code = "You can't setup detection for time in past. Increase minutes !";
+          return false;
+        }
+        resultMinutes = 60 - resultMinutes;
+      }
+      this.calculateSecondsForDetection(resultHours, resultMinutes);
+      return true;
+    }else{
+      this.startTimeError.flag = true;
+      this.startTimeError.code = "You need to put detection end time in the format of HH:MM !";
+      return false;
+    }
     if(re.test(this.endTime)){
       const hhMM = this.endTime.split(':');
       var currentdate = new Date();
       var resultHours = parseInt(hhMM[0], 10) - currentdate.getHours();
       var resultMinutes = parseInt(hhMM[1], 10) - currentdate.getMinutes();
       if (resultHours < 0){
-          window.alert("You can't setup detection for time in past. Increase hour !");
-          return false;
+        this.endTimeError.flag = true;
+        this.endTimeError.code = "You can't setup detection for time in past. Increase hour !";
+        return false;
       }
       if(resultMinutes < 0) {
         if(resultHours == 0){
-          window.alert("You can't setup detection for time in past. Increase minutes !");
+          this.endTimeError.flag = true;
+          this.endTimeError.code = "You can't setup detection for time in past. Increase minutes !";
           return false;
         }
         resultMinutes = 60 - resultMinutes;
       }
-      console.log("Result hours: " + resultHours);
-      console.log("Result minutes: " + resultMinutes);
       this.calculateSecondsForDetection(resultHours, resultMinutes);
-      console.log("Seconds for detection: " + this.numberOfSecondsForDetection);
       return true;
     }else{
-      window.alert("You need to put detection end time in the format of HH:MM !");
+      this.endTimeError.flag = true;
+      this.endTimeError.code = "You need to put detection end time in the format of HH:MM !";
       return false;
     }
   }

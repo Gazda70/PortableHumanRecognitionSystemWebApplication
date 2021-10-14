@@ -1,12 +1,63 @@
 
-<div>
-  <form name="timeForm">
-    <mat-form-field appearance="fill" #end>
-      <mat-label>Detection time</mat-label>
-      <input matInput name="endTime" [disabled]="this.isDetecting" [(ngModel)] = "endTime">
-    </mat-form-field>
-  </form>
-  <button mat-raised-button [disabled]="this.isDetecting" (click)="this.detect()">Start detection</button>
-</div>
-  <!--<mat-progress-spinner *ngIf="this.isDetecting" mode="indeterminate">-->
+<!--
+<form [formGroup]="startTimeForm">
+  <mat-form-field appearance="fill">
+    <mat-label>Start time</mat-label>
+    <input matInput formControlName="name">
+  </mat-form-field >
+</form>
 
+<form [formGroup]="endTimeForm">
+  <mat-form-field appearance="fill">
+    <mat-label>End time</mat-label>
+    <input matInput formControlName="name">
+  </mat-form-field>
+</form>-->
+
+
+<form name="timeForm">
+  <mat-form-field appearance="fill" #start>
+    <mat-label>Start time</mat-label>
+    <input matInput name="startTime" [disabled]="this.isDetecting" [(ngModel)] = "startTime">
+    <!--<mat-error *ngIf="email.invalid">{{getErrorMessage()}}</mat-error>-->
+  </mat-form-field >
+
+  <mat-form-field appearance="fill" #end>
+    <mat-label>Detection time</mat-label>
+    <input matInput name="endTime" [disabled]="this.isDetecting" [(ngModel)] = "endTime">
+    <!--<mat-error *ngIf="email.invalid">{{getErrorMessage()}}</mat-error>-->
+  </mat-form-field>
+</form>
+
+
+<ngb-timepicker [(ngModel)]="time"></ngb-timepicker>
+
+
+<form class="form-inline">
+  <div class="form-group">
+    <div class="input-group">
+      <input class="form-control" placeholder="yyyy-mm-dd"
+             name="dp" [(ngModel)]="model" ngbDatepicker #d="ngbDatepicker">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary calendar" (click)="d.toggle()" type="button"></button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<button mat-button [disabled]="this.isDetecting" [matMenuTriggerFor]="neuralNetworksMenu">Choose detector neural network</button>
+
+<mat-menu #neuralNetworksMenu="matMenu">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="this.setChosenNeuralNetwork(neuralNetworkName)" *ngFor="let neuralNetworkName of this.neuralNetworksAvailable">{{neuralNetworkName}}</button>
+  </ng-template>
+</mat-menu>
+
+<button mat-raised-button [disabled]="this.isDetecting" (click)="this.detect()">Start detection</button>
+
+<!--<button (click)='startTimer()'>Start Timer</button>
+<button (click)='pauseTimer()'>Pause</button>
+
+<p>{{display }} Seconds</p>-->
+
+<mat-progress-spinner *ngIf="this.isDetecting" mode="indeterminate">

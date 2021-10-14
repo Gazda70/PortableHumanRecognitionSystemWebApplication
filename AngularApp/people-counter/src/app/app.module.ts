@@ -17,12 +17,15 @@ import {MatInputModule} from "@angular/material/input";
 import { FormsModule, ReactiveFormsModule  } from '@angular/forms';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
+import { NgbdTimepickerBasic } from '@ng-bootstrap/ng-bootstrap/timepicker';
 
 @NgModule({
   declarations: [
     AppComponent,
     HourlyPresenceComponent,
-    StartScreenComponent
+    StartScreenComponent,
+    NgbdTimepickerBasic
   ],
   imports: [
     BrowserModule,
@@ -38,9 +41,11 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
     MatMenuModule,
     FormsModule,
     ReactiveFormsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    NgbModule
   ],
+  exports: [NgbdTimepickerBasic],
   providers: [DetectionService],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, NgbdTimepickerBasic]
 })
 export class AppModule { }
